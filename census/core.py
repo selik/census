@@ -2,6 +2,7 @@ from functools import wraps
 from xml.etree.ElementTree import XML
 import json
 import requests
+import os
 
 __version__ = "0.6"
 
@@ -340,7 +341,14 @@ class Census(object):
 
     ALL = ALL
 
-    def __init__(self, key, year=None, session=None):
+    def __init__(self, key=None, year=None, session=None):
+        if key is None:
+            try:
+                with open(os.path.expanduser('~') + '.census-api-key') as f:
+                    key = f.read().strip()
+            except FileNotFoundError as e:
+                raise APIKeyError('''API Key not specified and could not find
+                ".census-api-key" in home directory.''')
 
         if not session:
             session = requests.session()
@@ -350,3 +358,4 @@ class Census(object):
         self.acs1dp = ACS1DpClient(key, year, session)
         self.sf1 = SF1Client(key, year, session)
         self.sf3 = SF3Client(key, year, session)
+
